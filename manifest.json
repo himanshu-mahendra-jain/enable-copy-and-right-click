@@ -1,0 +1,40 @@
+{
+    "manifest_version": 3,
+    "name": "Enable Copy and Right Click",
+    "version": "1.0.0",
+    "description": "Enable copying, text selection, and right-click menus on restricted webpages.",
+    "icons": {
+        "128": "icons/icon128.png"
+    },
+    "action": {
+        "default_title": "Enable Copy and Right Click",
+        "default_icon": {
+            "128": "icons/icon128.png"
+        }
+    },
+    "commands": {
+        "enable-copy-right-click": {
+            "suggested_key": {
+                "windows": "Alt+C",
+                "linux": "Alt+C",
+                "chromeos": "Alt+C",
+                "mac": "Command+Shift+Y"
+            },
+            "description": "Enable copy and right click on the current page"
+        }
+    },
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "optional_host_permissions": [
+        "http://*/*",
+        "https://*/*"
+    ],
+    "background": {
+        "service_worker": "src/background.js",
+        "type": "module"
+    },
+    "options_page": "options/options.html"
+}

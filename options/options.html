@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Automatic Sites | Enable Copy and Right Click</title>
+
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <main>
+        <header>
+            <p class="extension-name">Enable Copy and Right Click</p>
+
+            <a href="https://github.com/himanshu-mahendra-jain/enable-copy-and-right-click" target="_blank"
+                rel="noopener noreferrer" aria-label="GitHub repository, opens in a new tab">
+                GitHub
+            </a>
+        </header>
+
+        <h1>Automatic Sites</h1>
+
+        <p class="intro">
+            Automatically enable copying, text selection, and right click
+            on the websites you add.
+        </p>
+
+        <form id="site-form">
+            <label class="visually-hidden" for="site-input">
+                Website domain
+            </label>
+
+            <input id="site-input" type="text" placeholder="example.com" autocomplete="off" autocapitalize="none"
+                spellcheck="false" required>
+
+            <button type="submit">Add Site</button>
+        </form>
+
+        <p id="message" role="status"></p>
+
+        <ul id="site-list" aria-label="Automatic sites"></ul>
+    </main>
+
+    <script type="module" src="options.js"></script>
+</body>
+
+</html>

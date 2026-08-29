@@ -1,0 +1,51 @@
+{
+    "manifest_version": 3,
+    "name": "Enable Copy and Right Click",
+    "version": "1.0.0",
+    "description": "Enable copying, text selection, and right-click menus on restricted webpages.",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "enable-copy-and-right-click@himanshu-mahendra-jain",
+            "data_collection_permissions": {
+                "required": [
+                    "none"
+                ]
+            }
+        }
+    },
+    "icons": {
+        "128": "icons/icon128.png"
+    },
+    "action": {
+        "default_title": "Enable Copy and Right Click",
+        "default_icon": {
+            "128": "icons/icon128.png"
+        }
+    },
+    "commands": {
+        "enable-copy-right-click": {
+            "suggested_key": {
+                "windows": "Alt+C",
+                "linux": "Alt+C",
+                "mac": "Command+Shift+Y"
+            },
+            "description": "Enable copy and right click on the current page"
+        }
+    },
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "optional_host_permissions": [
+        "http://*/*",
+        "https://*/*"
+    ],
+    "background": {
+        "scripts": [
+            "src/background.js"
+        ],
+        "type": "module"
+    },
+    "options_page": "options/options.html"
+}

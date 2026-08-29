@@ -1,0 +1,371 @@
+# Enable Copy and Right Click
+
+A lightweight browser extension for re-enabling copying, text selection, and right-click menus on restricted webpages.
+
+The extension is designed to be simple, fast, private, and predictable. It supports one-click activation for the current tab and optional automatic activation on user-selected sites.
+
+<a href="https://chromewebstore.google.com/detail/enable-copy-and-right-cli/gnampfpejlalfeddnekcfcdmpjacoojm" rel="noopener noreferrer">
+  <img src="https://developer.chrome.com/static/docs/webstore/branding/image/UV4C4ybeBTsZt43U4xis.png" alt="Available in the Chrome Web Store">
+</a>
+
+<a href="https://microsoftedge.microsoft.com/addons/detail/dcnpbiiiglpgpgpenonpdfhponjbcdkd" rel="noopener noreferrer">
+  <img src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png" alt="Get it from Microsoft Edge">
+</a>
+
+<a href="https://addons.mozilla.org/en-US/firefox/addon/enable-copy-and-right-click/" rel="noopener noreferrer">
+  <img src="https://blog.mozilla.org/addons/files/2015/11/get-the-addon.png" alt="Get the add-on">
+</a>
+
+## Supported Browsers
+
+The extension supports:
+
+* Google Chrome
+* Microsoft Edge
+* Mozilla Firefox
+
+Chrome and Edge use the Chromium manifest. Firefox uses a separate manifest for browser-specific background execution and add-on metadata.
+
+The JavaScript source code is shared across all supported browsers.
+
+## Features
+
+* Enable right click on pages that block the context menu
+* Enable copy, cut, paste, text selection, and drag start events
+* Use a toolbar click to enable the current tab
+* Use a keyboard shortcut to enable the current tab
+* Add automatic sites from the options page
+* Run automatic site activation at `document_start`
+* Support accessible iframes where browser permissions allow script injection
+* Show an `ON` toolbar badge after manual activation
+* Handle rapid repeated actions sequentially per tab
+* Use optional host permissions only for automatic sites
+* No analytics or tracking
+* No remote code
+* No network requests
+
+## Usage
+
+### Toolbar
+
+Click the extension icon to enable copying, text selection, and right click on the current tab.
+
+Manual activation uses `activeTab`, so the extension gets temporary access only after the user invokes it.
+
+### Keyboard Shortcut
+
+The extension includes a default keyboard shortcut for enabling the current tab.
+
+#### Chrome and Edge
+
+| Operating System | Shortcut |
+| ---------------- | -------- |
+| Windows | `Alt+C` |
+| Linux | `Alt+C` |
+| ChromeOS | `Alt+C` |
+| macOS | `Command+Shift+Y` |
+
+#### Firefox
+
+| Operating System | Shortcut |
+| ---------------- | -------- |
+| Windows | `Alt+C` |
+| Linux | `Alt+C` |
+| macOS | `Command+Shift+Y` |
+
+The keyboard shortcut performs exactly the same action as clicking the extension icon.
+
+Users can change the shortcut at any time through their browser's extension keyboard shortcut settings.
+
+### Automatic Sites
+
+Open the extension options page and add a domain such as:
+
+```text
+example.com
+```
+
+When a site is added, the browser asks for host permission for that domain. The extension stores the domain locally and registers a content script for automatic activation on that site.
+
+Only normal domain names are supported. IP addresses and `localhost` are intentionally not supported by the automatic site list.
+
+#### Open the Options Page
+
+##### Chrome and Edge
+
+1. Right-click the extension icon in the browser toolbar.
+2. Select **Options**.
+
+##### Firefox
+
+1. Open `about:addons`.
+2. Select **Extensions**.
+3. Find **Enable Copy and Right Click**.
+4. Click the three-dot menu next to the extension.
+5. Select **Preferences**.
+
+## Removing Automatic Sites
+
+Removing a site from the options page removes the domain from local extension storage, updates the registered automatic content script, and removes the active optional host permission through the browser permissions API.
+
+In Chrome, the extension details page may still show removed host patterns under "Automatically allow access on the following sites" with grey/off toggles. This is Chrome remembering previously granted optional site access. Grey/off means the extension does not currently have access.
+
+The authoritative runtime check is `chrome.permissions.getAll()`, not whether Chrome still displays a disabled remembered row.
+
+There is no extension API to force Chrome to delete those remembered grey/off rows from its settings UI.
+
+## Project Structure
+
+```text
+enable-copy-and-right-click/
+├── icons/
+│   └── icon128.png
+├── options/
+│   ├── options.css
+│   ├── options.html
+│   └── options.js
+├── src/
+│   ├── background.js
+│   ├── enable.js
+│   └── site-utils.js
+├── store-assets/
+│   ├── store.md
+│   ├── store-marquee-promo.png
+│   ├── store-screenshot.png
+│   └── store-small-promo.png
+├── manifest.json
+├── manifest-firefox.json
+├── LICENSE
+└── README.md
+```
+
+Generated distribution packages are written to `dist/`. The directory is generated by the build script and is not tracked in Git.
+
+The shared `build.sh` helper is intentionally not tracked in this repository. Download it locally only when you need to create release packages.
+
+### `manifest.json`
+
+Defines the extension metadata, permissions, service worker, toolbar action, keyboard command, and options page for Chrome and Edge. The service worker uses ES modules.
+
+### `manifest-firefox.json`
+
+Defines the Firefox-specific extension configuration while using the same permissions, source files, options page, and functionality.
+
+### `src/background.js`
+
+Handles toolbar clicks, keyboard shortcut commands, active-tab lookup for keyboard commands, per-tab operation queues, automatic-site content-script registration, and permission synchronization.
+
+The per-tab queue ensures rapid manual actions are processed sequentially within the same tab while allowing different tabs to operate independently.
+
+### `src/enable.js`
+
+Contains the content script that restores page interactions. It clears common inline event handlers, captures blocking events before page listeners, and injects a small style rule to restore text selection.
+
+The script is idempotent, so repeated manual activation does not keep adding duplicate handlers or styles.
+
+### `src/site-utils.js`
+
+Normalizes user-entered domains, validates automatic-site entries, sanitizes stored site lists, and converts domains into browser host permission patterns.
+
+### `options/`
+
+Contains the options page for adding and removing automatic sites. The page uses local browser extension APIs only and does not load external assets.
+
+### `store-assets/`
+
+Reserved for browser-store listing assets. These files are repository assets and are not included in browser distribution packages.
+
+## Toolbar Badge
+
+After successful manual activation, the extension displays `ON` in the toolbar badge for that tab.
+
+The badge is cleared when the tab starts loading a new page.
+
+## Permissions
+
+The extension requests:
+
+```json
+{
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
+}
+```
+
+### `activeTab`
+
+Provides temporary access to the active tab after the user invokes the extension from the toolbar or keyboard shortcut. This is used for manual activation.
+
+### `scripting`
+
+Allows the extension to execute the content script in the user-invoked tab and in registered automatic-site matches.
+
+### `storage`
+
+Stores the automatic site list locally in the browser.
+
+### `optional_host_permissions`
+
+Allows the extension to request site-specific access only when the user adds a domain for automatic activation. The extension does not receive these host permissions at install time.
+
+## Privacy
+
+The extension:
+
+* Does not collect user data
+* Does not collect browsing history
+* Does not use analytics
+* Does not use tracking
+* Does not make network requests
+* Does not use remote code
+* Does not load external JavaScript
+* Stores automatic-site preferences locally in `chrome.storage.local`
+* Requests optional host permissions only after user action
+
+All copy and right-click restoration happens locally in the browser.
+
+## Performance
+
+The extension is event-driven and performs no continuous background work while idle.
+
+Manual activation runs only after a toolbar click or keyboard shortcut. Automatic activation runs only on user-added sites through browser-registered content scripts.
+
+There is no polling, `setInterval`, background network activity, analytics SDK, remote configuration, or persistent page monitoring loop.
+
+## Security Design
+
+The extension follows a minimal-capability approach. Manual activation relies on `activeTab`, and persistent host access is requested only for sites explicitly added by the user.
+
+The extension avoids remote code, external dependencies, web-accessible resources, native messaging, broad install-time host permissions, and unnecessary network access.
+
+Automatic-site input is normalized and validated before permission requests are made. IP addresses and `localhost` are not accepted for automatic site entries.
+
+## Build
+
+Download `build.sh` from the [Web Extensions Common Build Script repository](https://github.com/himanshu-mahendra-jain/web-extensions-common-build-script) and place it in the extension project's root directory.
+
+The build script is maintained separately so the same packaging process can be reused across multiple browser extension projects.
+
+### Prerequisites
+
+The build process requires:
+
+* Bash
+* `zip`
+
+Check whether `zip` is installed:
+
+```bash
+zip -v
+```
+
+If it is not installed, install it using your system package manager.
+
+Examples:
+
+```text
+Debian/Ubuntu: sudo apt install zip
+```
+
+### Download the Build Script
+
+Download the shared `build.sh` script from the [Web Extensions Common Build Script repository](https://github.com/himanshu-mahendra-jain/web-extensions-common-build-script) and place it in the extension project's root directory.
+
+After adding the script, the local project structure should look like this:
+
+```text
+enable-copy-and-right-click/
+├── icons/
+├── options/
+├── src/
+├── store-assets/
+├── build.sh
+├── manifest.json
+├── manifest-firefox.json
+├── LICENSE
+└── README.md
+```
+
+The downloaded build script is a development tool and does not need to be included in browser distribution packages.
+
+### Run the Build
+
+Make the build script executable:
+
+```bash
+chmod +x ./build.sh
+```
+
+Run:
+
+```bash
+./build.sh
+```
+
+The script:
+
+* Reads the extension name and version from the manifest files
+* Creates a clean `dist/` directory
+* Packages Chrome using `manifest.json`
+* Packages Edge using `manifest.json`
+* Packages Firefox using `manifest-firefox.json` as `manifest.json` inside the Firefox ZIP
+* Includes the shared `src/`, `icons/`, and `options/` directories
+* Creates separate ZIP files for each browser
+
+For details about the shared build process, updates, and usage instructions, see the [Web Extensions Common Build Script repository](https://github.com/himanshu-mahendra-jain/web-extensions-common-build-script).
+
+Example output:
+
+```text
+dist/
+├── enable-copy-and-right-click-chrome-v1.0.0.zip
+├── enable-copy-and-right-click-edge-v1.0.0.zip
+└── enable-copy-and-right-click-firefox-v1.0.0.zip
+```
+
+The ZIP archives contain only the files required to run the extension.
+
+## Development Install
+
+### Chrome and Edge
+
+1. Open `chrome://extensions` or `edge://extensions`.
+2. Enable Developer mode.
+3. Choose "Load unpacked".
+4. Select this project directory.
+
+### Firefox
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Choose "Load Temporary Add-on".
+3. Select `manifest-firefox.json` or a packaged Firefox build.
+
+## Known Limitations
+
+* Browser-protected pages do not allow extension script injection.
+* Some embedded cross-origin frames may not be accessible because of browser security restrictions.
+* Some websites may reapply blocking behavior after the extension runs.
+* Automatic sites require user-granted optional host permissions.
+* Chrome may continue showing removed host patterns as grey/off remembered rows in extension settings.
+* Mobile browser support depends on the browser and platform's extension capabilities.
+
+## Design Philosophy
+
+Enable Copy and Right Click is intentionally focused on one task:
+
+> Restore normal page interactions quickly, without tracking, remote code, or install-time access to every website.
+
+The extension favors explicit user actions, local-only behavior, limited permissions, and predictable automatic-site controls.
+
+## License
+
+The source code for this project is licensed under the GNU General Public License v3.0 (GPLv3). See the `LICENSE` file for the full license terms.
+
+If you fork or build upon this project, attribution to the original project is appreciated.
