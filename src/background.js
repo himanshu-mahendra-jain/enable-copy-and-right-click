@@ -81,6 +81,11 @@ async function enableCopyAndRightClick(tabId) {
         tabId,
         text: "ON"
     });
+
+    await chrome.action.setTitle({
+        tabId,
+        title: "Enable Copy and Right Click: Active"
+    });
 }
 
 
@@ -249,6 +254,16 @@ chrome.tabs.onUpdated.addListener(
         }).catch((error) => {
             reportError(
                 "Could not clear badge",
+                error
+            );
+        });
+
+        chrome.action.setTitle({
+            tabId,
+            title: "Enable Copy and Right Click"
+        }).catch((error) => {
+            reportError(
+                "Could not reset title",
                 error
             );
         });

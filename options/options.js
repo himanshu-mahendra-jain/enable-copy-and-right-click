@@ -17,6 +17,9 @@ const list =
 const message =
     document.getElementById("message");
 
+const emptyState =
+    document.getElementById("empty-state");
+
 const submitButton =
     form.querySelector(
         'button[type="submit"]'
@@ -24,6 +27,18 @@ const submitButton =
 
 
 let operationInProgress = false;
+
+
+function setMessage(text, type = "status") {
+    message.textContent = text;
+    message.classList.remove("error", "success");
+
+    if (type === "error") {
+        message.classList.add("error");
+    } else if (type === "success") {
+        message.classList.add("success");
+    }
+}
 
 
 function setBusy(isBusy) {
@@ -147,6 +162,23 @@ async function renderSites() {
     const sites =
         await getSites();
 
+    if (sites.length === 0) {
+        list.replaceChildren();
+        list.hidden = true;
+
+        if (emptyState) {
+            emptyState.hidden = false;
+        }
+
+        return;
+    }
+
+    if (emptyState) {
+        emptyState.hidden = true;
+    }
+
+    list.hidden = false;
+
     const entries =
         await Promise.all(
             sites.map(async (site) => ({
@@ -161,67 +193,72 @@ async function renderSites() {
         document.createDocumentFragment();
 
 
-    for (
-        const {
-            site,
-            hasPermission
-        } of entries
-    ) {
-        const item =
-            document.createElement("li");
+    entries.forEach(
+        (
+            {
+                site,
+                hasPermission
+            },
+            index
+        ) => {
+            const item =
+                document.createElement("li");
 
-        const label =
-            document.createElement("span");
+            const label =
+                document.createElement("span");
 
-        const removeButton =
-            document.createElement("button");
-
-
-        label.textContent = hasPermission
-            ? site
-            : `${site} (permission removed)`;
+            const removeButton =
+                document.createElement("button");
 
 
-        removeButton.type = "button";
-        removeButton.textContent = "Remove";
-
-        removeButton.setAttribute(
-            "aria-label",
-            `Remove ${site}`
-        );
+            label.textContent = hasPermission
+                ? site
+                : `${site} (permission removed)`;
 
 
-        removeButton.addEventListener(
-            "click",
-            async () => {
-                if (operationInProgress) {
-                    return;
+            removeButton.type = "button";
+            removeButton.textContent = "Remove";
+
+            removeButton.setAttribute(
+                "aria-label",
+                `Remove ${site}`
+            );
+
+
+            removeButton.addEventListener(
+                "click",
+                async () => {
+                    if (operationInProgress) {
+                        return;
+                    }
+
+                    setMessage("");
+                    setBusy(true);
+
+                    try {
+                        await removeSite(site, index);
+                    } catch (error) {
+                        console.error(error);
+
+                        setMessage(
+                            "The site could not be removed.",
+                            "error"
+                        );
+                    } finally {
+                        setBusy(false);
+                    }
                 }
-
-                message.textContent = "";
-                setBusy(true);
-
-                try {
-                    await removeSite(site);
-                } catch (error) {
-                    console.error(error);
-
-                    message.textContent =
-                        "The site could not be removed.";
-                } finally {
-                    setBusy(false);
-                }
-            }
-        );
+            );
 
 
-        item.append(
-            label,
-            removeButton
-        );
+            item.append(
+                label,
+                removeButton
+            );
 
-        fragment.appendChild(item);
-    }
+            fragment.appendChild(item);
+        }
+    );
 
 
     list.replaceChildren(fragment);
@@ -234,8 +271,10 @@ async function addSite(
     granted
 ) {
     if (!granted) {
-        message.textContent =
-            "Site permission was not granted.";
+        setMessage(
+            "Site permission was not granted.",
+            "error"
+        );
 
         return;
     }
@@ -247,8 +286,10 @@ async function addSite(
 
     if (sites.includes(site)) {
         if (hadPermission) {
-            message.textContent =
-                "This site is already enabled.";
+            setMessage(
+                "This site is already enabled.",
+                "status"
+            );
 
             return;
         }
@@ -256,8 +297,12 @@ async function addSite(
 
         await requestSync();
 
-        message.textContent =
-            `${site} re-enabled.`;
+        input.removeAttribute("aria-invalid");
+
+        setMessage(
+            `${site} re-enabled.`,
+            "success"
+        );
 
         await renderSites();
 
@@ -293,15 +338,18 @@ async function addSite(
     await requestSync();
 
     input.value = "";
+    input.removeAttribute("aria-invalid");
 
-    message.textContent =
-        `${site} added.`;
+    setMessage(
+        `${site} added.`,
+        "success"
+    );
 
     await renderSites();
 }
 
 
-async function removeSite(site) {
+async function removeSite(site, index) {
     const sites =
         await getSites();
 
@@ -336,11 +384,37 @@ async function removeSite(site) {
     }
 
 
-    message.textContent =
-        `${site} removed.`;
+    setMessage(
+        `${site} removed.`,
+        "success"
+    );
 
     await renderSites();
+
+    const remainingButtons =
+        list.querySelectorAll("button");
+
+    if (remainingButtons.length > 0) {
+        const targetButton =
+            remainingButtons[index] ||
+            remainingButtons[remainingButtons.length - 1];
+
+        targetButton?.focus();
+    } else {
+        input.focus();
+    }
 }
+
+
+input.addEventListener("input", () => {
+    if (input.getAttribute("aria-invalid") === "true") {
+        input.removeAttribute("aria-invalid");
+
+        if (message.classList.contains("error")) {
+            setMessage("");
+        }
+    }
+});
 
 
 form.addEventListener(
@@ -354,20 +428,29 @@ form.addEventListener(
         }
 
 
-        message.textContent = "";
+        setMessage("");
 
         const site =
             normalizeSite(input.value);
 
 
         if (!site) {
-            message.textContent =
-                "Enter a valid domain, such as example.com.";
+            input.setAttribute(
+                "aria-invalid",
+                "true"
+            );
+
+            setMessage(
+                "Enter a valid domain, such as example.com.",
+                "error"
+            );
 
             input.focus();
 
             return;
         }
+
+        input.removeAttribute("aria-invalid");
 
 
         const origins =
@@ -413,8 +496,10 @@ form.addEventListener(
         } catch (error) {
             console.error(error);
 
-            message.textContent =
-                "The site could not be added.";
+            setMessage(
+                "The site could not be added.",
+                "error"
+            );
         } finally {
             setBusy(false);
         }
@@ -425,6 +510,8 @@ form.addEventListener(
 renderSites().catch((error) => {
     console.error(error);
 
-    message.textContent =
-        "The site list could not be loaded.";
+    setMessage(
+        "The site list could not be loaded.",
+        "error"
+    );
 });

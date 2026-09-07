@@ -34,12 +34,14 @@
             </label>
 
             <input id="site-input" type="text" placeholder="example.com" autocomplete="off" autocapitalize="none"
-                spellcheck="false" required>
+                spellcheck="false" inputmode="url" aria-describedby="message" required>
 
             <button type="submit">Add Site</button>
         </form>
 
         <p id="message" role="status"></p>
+
+        <p id="empty-state" class="empty-state" hidden>No automatic sites added yet.</p>
 
         <ul id="site-list" aria-label="Automatic sites"></ul>
     </main>

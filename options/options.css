@@ -1,10 +1,16 @@
 :root {
     --bg: #fff;
     --fg: #18181b;
-    --muted: #71717a;
+    --muted: #52525b;
     --line: #e4e4e7;
+    --input-border: #71717a;
     --accent: #6d28d9;
     --accent-hover: #5b21b6;
+    --btn-bg: #6d28d9;
+    --btn-hover: #5b21b6;
+    --btn-text: #fff;
+    --error: #b91c1c;
+    --success: #15803d;
 
     font-family: Arial, sans-serif;
     color-scheme: light dark;
@@ -40,6 +46,13 @@ header {
     font-weight: 700;
 }
 
+header a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
+}
+
 a {
     color: var(--accent);
     text-decoration: none;
@@ -67,7 +80,7 @@ form {
 
 input,
 button {
-    height: 42px;
+    height: 44px;
     border-radius: 6px;
     font: inherit;
 }
@@ -76,7 +89,7 @@ input {
     flex: 1;
     min-width: 0;
     padding: 0 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--input-border);
     background: var(--bg);
     color: var(--fg);
     outline: none;
@@ -89,14 +102,14 @@ input:focus {
 button {
     padding: 0 18px;
     border: 0;
-    background: var(--accent);
-    color: #fff;
+    background: var(--btn-bg);
+    color: var(--btn-text);
     font-weight: 700;
     cursor: pointer;
 }
 
 button:hover {
-    background: var(--accent-hover);
+    background: var(--btn-hover);
 }
 
 a:focus-visible,
@@ -118,6 +131,19 @@ input:disabled {
     color: var(--muted);
 }
 
+#message.error {
+    color: var(--error);
+}
+
+#message.success {
+    color: var(--success);
+}
+
+.empty-state {
+    margin: 16px 0;
+    color: var(--muted);
+}
+
 ul {
     margin: 0;
     padding: 0;
@@ -129,7 +155,7 @@ li {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 0;
+    padding: 6px 0;
     border-bottom: 1px solid var(--line);
 }
 
@@ -140,7 +166,9 @@ li span {
 
 li button {
     height: auto;
-    padding: 4px 0;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 4px;
     background: none;
     color: var(--accent);
 }
@@ -168,8 +196,14 @@ li button:hover {
         --fg: #fafafa;
         --muted: #a1a1aa;
         --line: #3f3f46;
-        --accent: #a855f7;
-        --accent-hover: #9333ea;
+        --input-border: #71717a;
+        --accent: #c084fc;
+        --accent-hover: #d8b4fe;
+        --btn-bg: #9333ea;
+        --btn-hover: #7e22ce;
+        --btn-text: #ffffff;
+        --error: #f87171;
+        --success: #4ade80;
     }
 }
 
@@ -182,5 +216,37 @@ li button:hover {
 @media (max-width: 380px) {
     form {
         flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@media (forced-colors: active) {
+    input {
+        border: 1px solid CanvasText;
+    }
+
+    button {
+        border: 1px solid ButtonText;
+    }
+
+    li button {
+        border: 1px solid transparent;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+        outline: 3px solid Highlight;
     }
 }

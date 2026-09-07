@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Enable Copy and Right Click",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Enable copying, text selection, and right-click menus on restricted webpages.",
     "browser_specific_settings": {
         "gecko": {
